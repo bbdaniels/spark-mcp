@@ -1,0 +1,13 @@
+[project]
+name = "spark-mcp"
+version = "0.1.0"
+description = "Read-only MCP server for Spark Desktop email (local SQLite)"
+requires-python = ">=3.10"
+dependencies = ["mcp>=1.0.0"]
+
+[project.scripts]
+spark-mcp = "spark_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
