@@ -2,6 +2,19 @@
 
 Read-only MCP server for [Spark Desktop](https://sparkmailapp.com/) email. Queries Spark's local SQLite databases directly -- no IMAP connections, no API keys, no network access.
 
+## Quick Start with Claude Code
+
+```bash
+# 1. Clone and install
+git clone https://github.com/bbdaniels/spark-mcp.git
+cd spark-mcp && pip install -e .
+
+# 2. Register the MCP server (one-liner)
+claude mcp add spark-email -- spark-mcp
+```
+
+That's it. Restart Claude Code and you can search, read, and browse your Spark email.
+
 ## What it does
 
 Gives Claude (or any MCP client) read-only access to your Spark email:
@@ -19,11 +32,18 @@ Gives Claude (or any MCP client) read-only access to your Spark email:
 ## Install
 
 ```bash
+git clone https://github.com/bbdaniels/spark-mcp.git
 cd spark-mcp
 pip install -e .
 ```
 
 ## Register with Claude Code
+
+```bash
+claude mcp add spark-email -- spark-mcp
+```
+
+This registers the `spark-mcp` console script (installed by `pip install -e .`) as an MCP server named `spark-email`. You can also use the module entry point:
 
 ```bash
 claude mcp add spark-email -- python3 -m spark_mcp.server
