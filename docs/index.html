@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark MCP - Read-Only Spark Email via MCP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fafaf9;
+            --text: #1c1917;
+            --text-secondary: #57534e;
+            --accent: #292524;
+            --border: #e7e5e4;
+            --card-bg: #ffffff;
+            --link: #2563eb;
+            --link-hover: #1d4ed8;
+            --hover-bg: rgba(0, 0, 0, 0.04);
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --max-width: 960px;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a2332;
+                --text: #e5e5e5;
+                --text-secondary: #a3b1c2;
+                --accent: #e5e5e5;
+                --border: #2f3d4f;
+                --card-bg: #212c3b;
+                --link: #60a5fa;
+                --link-hover: #93bbfd;
+                --hover-bg: rgba(255, 255, 255, 0.06);
+                --shadow-color: rgba(0, 0, 0, 0.3);
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .rainbow-bar {
+            height: 10px;
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        nav a:hover { color: var(--link); }
+        nav .nav-links a {
+            color: var(--text-secondary);
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        nav .nav-links a:hover { color: var(--link); }
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            margin-bottom: 2.5rem;
+            max-width: 640px;
+        }
+        h2 {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+        h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        p { margin-bottom: 1rem; }
+        a { color: var(--link); text-decoration: none; }
+        a:hover { color: var(--link-hover); text-decoration: underline; }
+        ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.35rem; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 640px) {
+            .cards { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+        .card h3 { margin-top: 0; margin-bottom: 0.5rem; }
+        .card p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0; }
+        pre {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+        code {
+            font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+            font-size: 0.875rem;
+        }
+        :not(pre) > code {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            font-weight: 600;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+        }
+        .note {
+            background: var(--card-bg);
+            border-left: 3px solid var(--link);
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+        }
+        .note strong { color: var(--link); }
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="rainbow-bar"></div>
+    <nav>
+        <a href="https://www.benjaminbdaniels.com">Benjamin B Daniels</a>
+        <div class="nav-links">
+            <a href="https://github.com/bbdaniels/spark-mcp">GitHub</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Spark MCP</h1>
+        <p class="tagline">Read-only MCP server for Spark Desktop email. Queries Spark's local SQLite databases directly -- no IMAP connections, no API keys, no network access required.</p>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Read-Only Access</h3>
+                <p>All database access uses SQLite read-only mode. Your email can never be modified or deleted through this server.</p>
+            </div>
+            <div class="card">
+                <h3>No Credentials Needed</h3>
+                <p>Reads directly from Spark's local cache on disk. No passwords, no API keys, no OAuth tokens.</p>
+            </div>
+            <div class="card">
+                <h3>Full-Text Search</h3>
+                <p>Uses Spark's built-in FTS5 index to search message bodies, subjects, senders, and recipients across all accounts.</p>
+            </div>
+            <div class="card">
+                <h3>macOS Only</h3>
+                <p>Works with Spark Desktop for macOS. Requires the app to be installed with at least one configured account.</p>
+            </div>
+        </div>
+
+        <h2>Quick Start</h2>
+        <pre><code># Clone and install
+git clone https://github.com/bbdaniels/spark-mcp.git
+cd spark-mcp && pip install -e .
+
+# Register the MCP server
+claude mcp add spark-email -- spark-mcp</code></pre>
+
+        <div class="note">
+            <strong>Requirements:</strong> macOS with Spark Desktop installed, Python 3.10+, and the <code>mcp</code> Python package.
+        </div>
+
+        <h2>Tools</h2>
+        <table>
+            <tr>
+                <th>Tool</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>spark_list_accounts</code></td>
+                <td>List configured email accounts</td>
+            </tr>
+            <tr>
+                <td><code>spark_search</code></td>
+                <td>Full-text search across all accounts (supports FTS5 syntax)</td>
+            </tr>
+            <tr>
+                <td><code>spark_get_message</code></td>
+                <td>Read a specific message with body text and attachments</td>
+            </tr>
+            <tr>
+                <td><code>spark_get_conversation</code></td>
+                <td>Read an entire email thread in order</td>
+            </tr>
+            <tr>
+                <td><code>spark_recent</code></td>
+                <td>List recent inbox messages, optionally filtered by account</td>
+            </tr>
+            <tr>
+                <td><code>spark_search_contacts</code></td>
+                <td>Search contacts by name or email address</td>
+            </tr>
+            <tr>
+                <td><code>spark_list_folders</code></td>
+                <td>List folders and labels per account</td>
+            </tr>
+        </table>
+
+        <h2>Security</h2>
+        <ul>
+            <li>All database access is <strong>read-only</strong> (SQLite <code>?mode=ro</code>)</li>
+            <li>No network connections -- reads only from local disk</li>
+            <li>No credentials needed -- uses Spark's existing local cache</li>
+        </ul>
+
+        <footer>
+            <p>&copy; 2025 Benjamin B Daniels</p>
+        </footer>
+    </div>
+</body>
+</html>
