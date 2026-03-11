@@ -1,0 +1,28 @@
+# spark-mcp
+
+> Read-only MCP server for Spark Desktop email -- queries local SQLite databases directly, no IMAP or API keys needed.
+
+## What It Does
+Gives Claude (or any MCP client) read-only access to Spark email on macOS. Search messages, read threads, browse contacts and folders -- all from Spark's local cache with zero network access.
+
+## Install
+```bash
+git clone https://github.com/bbdaniels/spark-mcp.git
+cd spark-mcp && pip install -e .
+claude mcp add spark-email -- spark-mcp
+```
+
+## Tools
+- `spark_list_accounts` -- List configured email accounts
+- `spark_search` -- Full-text search across all accounts (supports FTS5 syntax)
+- `spark_get_message` -- Read a specific message with body and attachments
+- `spark_get_conversation` -- Read an entire email thread
+- `spark_recent` -- List recent inbox messages
+- `spark_search_contacts` -- Search contacts by name or email
+- `spark_list_folders` -- List folders/labels per account
+
+## Notes
+- **Read-only**: All database access uses SQLite read-only mode
+- **macOS only**: Requires Spark Desktop installed locally
+- **No credentials**: Uses Spark's existing local SQLite cache
+- **No network**: Zero external connections -- everything is local disk reads
