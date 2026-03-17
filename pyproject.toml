@@ -3,7 +3,11 @@ name = "spark-mcp"
 version = "0.1.0"
 description = "Read-only MCP server for Spark Desktop email (local SQLite)"
 requires-python = ">=3.10"
-dependencies = ["mcp>=1.0.0"]
+dependencies = [
+    "mcp>=1.0.0",
+    "google-api-python-client>=2.0.0",
+    "google-auth-oauthlib>=1.0.0",
+]
 
 [project.scripts]
 spark-mcp = "spark_mcp.server:main"

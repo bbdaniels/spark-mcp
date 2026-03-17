@@ -1,4 +1,4 @@
-"""Spark Email MCP Server -- read-only access to Spark Desktop's local SQLite databases."""
+"""Spark Email MCP Server -- local SQLite reads + Gmail API draft creation."""
 
 from mcp.server.fastmcp import FastMCP
 
@@ -109,6 +109,37 @@ def spark_list_folders(account: int | None = None) -> str:
     if status != "ok":
         return status
     return list_folders(account=account)
+
+
+@mcp.tool()
+def spark_create_draft(
+    to: str,
+    subject: str,
+    body: str,
+    cc: str = "",
+    bcc: str = "",
+) -> str:
+    """Create an email draft in Personal Gmail. The draft appears in Gmail Drafts
+    and syncs to Spark, where you can review, edit the From address, and send.
+
+    Args:
+        to: Recipient email address(es), comma-separated.
+        subject: Email subject line.
+        body: Plain-text email body.
+        cc: Optional CC address(es), comma-separated.
+        bcc: Optional BCC address(es), comma-separated.
+    """
+    from spark_mcp.gmail import create_draft
+
+    return create_draft(to=to, subject=subject, body=body, cc=cc, bcc=bcc)
+
+
+@mcp.tool()
+def spark_draft_auth_status() -> str:
+    """Check whether Gmail OAuth is configured for draft creation."""
+    from spark_mcp.gmail import check_auth
+
+    return check_auth()
 
 
 def main():
