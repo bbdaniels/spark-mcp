@@ -1,8 +1,11 @@
 """Gmail API draft creation for Personal Gmail account."""
 
 import base64
+import html
 import json
 import os
+import re
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
@@ -55,13 +58,20 @@ def create_draft(
     creds = _get_credentials()
     service = build("gmail", "v1", credentials=creds)
 
-    message = MIMEText(body)
+    # Build multipart/alternative with both plain and HTML parts.
+    # Spark's draft editor rewrites plain-only drafts on first view and
+    # collapses \n line breaks, so we include an HTML version that
+    # preserves paragraph and line-break structure explicitly.
+    html_body = _text_to_html(body)
+    message = MIMEMultipart("alternative")
     message["to"] = to
     message["subject"] = subject
     if cc:
         message["cc"] = cc
     if bcc:
         message["bcc"] = bcc
+    message.attach(MIMEText(body, "plain", "utf-8"))
+    message.attach(MIMEText(html_body, "html", "utf-8"))
 
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
     draft = service.users().drafts().create(
@@ -71,6 +81,29 @@ def create_draft(
 
     draft_id = draft["id"]
     return f"Draft created (id={draft_id}). To: {to} | Subject: {subject}"
+
+
+def _text_to_html(text: str) -> str:
+    """Convert plain text to HTML, preserving paragraphs and auto-linking URLs.
+
+    - Double newline -> new <p> block
+    - Single newline inside a paragraph -> <br>
+    - http(s) URLs become clickable <a href> links
+    """
+    escaped = html.escape(text)
+    url_re = re.compile(r'(https?://[^\s<]+)')
+    paragraphs = escaped.split("\n\n")
+    parts = []
+    for p in paragraphs:
+        p = p.replace("\n", "<br>")
+        p = url_re.sub(r'<a href="\1">\1</a>', p)
+        parts.append(f'<p style="margin:0 0 12px 0">{p}</p>')
+    return (
+        '<div style="font-family:-apple-system,BlinkMacSystemFont,'
+        '\'Segoe UI\',sans-serif;font-size:14px;line-height:1.5">'
+        + "".join(parts)
+        + "</div>"
+    )
 
 
 def check_auth() -> str:
